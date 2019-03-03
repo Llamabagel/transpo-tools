@@ -1,0 +1,29 @@
+buildscript {
+    ext.kotlin_version = "1.3.21"
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        maven {
+            url  "https://dl.bintray.com/dellisd/transpo"
+        }
+    }
+}
+
+subprojects {
+    dependencies {
+        apply plugin: 'java'
+        implementation 'ca.llamabagel.transpo:shared:1.0.0-alpha02'
+    }
+}
