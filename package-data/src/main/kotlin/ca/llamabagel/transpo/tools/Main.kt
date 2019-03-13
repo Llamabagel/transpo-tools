@@ -2,12 +2,15 @@
 
 package ca.llamabagel.transpo.tools
 
-import ca.llamabagel.transpo.models.gtfs.Stop
-import ca.llamabagel.transpo.models.gtfs.StopId
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.subcommands
+import pack.PackageCommand
 
-fun main() {
-    println("Hello World!")
+fun main(args: Array<String>) {
+    Program().subcommands(PackageCommand()).main(args)
+}
 
-    val stop = Stop(StopId("AA"), "1234", "Not a Stop", null, -45.0, 75.0, null, null, null, null, null, null)
-    println(stop)
+class Program : CliktCommand() {
+    override fun run() {
+    }
 }

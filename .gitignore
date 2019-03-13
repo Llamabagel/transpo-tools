@@ -85,3 +85,6 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 
 local.properties
+
+google_transit.zip
+gtfs/
