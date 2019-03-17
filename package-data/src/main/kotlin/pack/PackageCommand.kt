@@ -1,13 +1,20 @@
 package pack
 
+import androidx.room.DatabaseView
 import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
-import ca.llamabagel.transpo.models.app.Stop
+import ca.llamabagel.transpo.models.app.*
+import ca.llamabagel.transpo.tools.SCHEMA_VERSION
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
+import com.google.gson.Gson
+import pack.transformers.StopsTransformer
+import pack.transformers.Transformer
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.zip.ZipFile
 
 class PackageCommand : CliktCommand(name = "package", help = "Package App data from an OC Transpo GTFS zip file. A version number will be automatically generated for the package.") {
@@ -19,6 +26,8 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
         unzipGtfs()
 
         copyData()
+
+        println(Gson().toJson(packageData()))
 
         cleanup()
     }
@@ -44,9 +53,10 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
         File("rawGtfs").mkdir()
         val gtfs = GtfsDirectory(File("rawGtfs").toPath())
 
-        // Copy all gtfs values over to raw gtfs
+        // Copy all gtfs values over to raw gtfs and transform the data
         println("Copying stops")
-        gtfs.stops.insert(*ocSource.stops.getAll().toTypedArray())
+        val transformedStops = Transformer(StopsTransformer, ocSource.stops.getAll()).transform()
+        gtfs.stops.insert(*transformedStops.toTypedArray())
 
         println("Copying routes")
         gtfs.routes.insert(*ocSource.routes.getAll().toTypedArray())
@@ -69,10 +79,15 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
         println("Done copying")
     }
 
-    private fun packageData() {
+    private fun packageData(): DataPackage {
         val gtfs = GtfsDirectory(File("rawGtfs").toPath())
 
         val convertedStops = gtfs.stops.getAll().map { Stop(it.id.value, it.code ?: "", it.name, it.latitude, it.longitude, it.locationType ?: 0, it.parentStation) }
+        // TODO: Long names and Service Levels
+        val convertedRoutes = gtfs.routes.getAll().map { Route(it.id.value, it.shortName, "", it.type, "", "") }
+
+        val version = SimpleDateFormat("YYYYMMdd").format(Date())
+        return DataPackage(Version(version), SCHEMA_VERSION, Date(), Data(convertedStops, emptyList(), emptyList(), emptyList()))
     }
 
     private fun cleanup() {

@@ -6,6 +6,8 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import pack.PackageCommand
 
+const val SCHEMA_VERSION = 1
+
 fun main(args: Array<String>) {
     Program().subcommands(PackageCommand()).main(args)
 }
