@@ -1,4 +1,4 @@
-package pack.transformers
+package ca.llamabagel.transpo.tools.pack.transformers
 
 /**
  * An interface that defines some object that is used to transform some data set of type [T]

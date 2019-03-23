@@ -1,4 +1,4 @@
-package pack.transformers
+package ca.llamabagel.transpo.tools.pack.transformers
 
 import ca.llamabagel.transpo.models.gtfs.Stop
 import ca.llamabagel.transpo.models.gtfs.StopId
@@ -82,10 +82,13 @@ object StopsTransformer : DataTransformer<Stop> {
     override fun mapItem(item: Stop): Stop {
         var mapped = item
         mapped = assignParentStations(mapped)
-        mapped = correctNames(mapped)
-
         if (item != mapped) {
-            println("Mapped $item to $mapped")
+            println("Mapped (parent station) $item to $mapped")
+        }
+
+        mapped = correctNames(mapped)
+        if (item != mapped) {
+            println("Corrected ${item.name} to ${mapped.name}")
         }
 
         return mapped

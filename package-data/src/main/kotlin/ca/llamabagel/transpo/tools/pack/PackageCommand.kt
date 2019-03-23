@@ -1,6 +1,5 @@
-package pack
+package ca.llamabagel.transpo.tools.pack
 
-import androidx.room.DatabaseView
 import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
 import ca.llamabagel.transpo.models.app.*
@@ -9,9 +8,8 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
-import com.google.gson.Gson
-import pack.transformers.StopsTransformer
-import pack.transformers.Transformer
+import ca.llamabagel.transpo.tools.pack.transformers.StopsTransformer
+import ca.llamabagel.transpo.tools.pack.transformers.Transformer
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,7 +25,7 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
 
         copyData()
 
-        println(Gson().toJson(packageData()))
+        ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
 
         cleanup()
     }
