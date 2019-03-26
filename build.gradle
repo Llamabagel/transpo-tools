@@ -24,6 +24,6 @@ allprojects {
 subprojects {
     dependencies {
         apply plugin: 'java'
-        implementation 'ca.llamabagel.transpo:shared:1.0.0-alpha04'
+        implementation 'ca.llamabagel.transpo:shared:1.0.0-alpha05'
     }
 }
