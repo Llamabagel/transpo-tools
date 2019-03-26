@@ -4,6 +4,7 @@ import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
 import ca.llamabagel.transpo.models.app.*
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
+import ca.llamabagel.transpo.tools.pack.transformers.RoutesTransformer
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
@@ -25,7 +26,7 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
 
         copyData()
 
-        ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
+        //ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
 
         cleanup()
     }
@@ -57,7 +58,8 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
         gtfs.stops.insert(*transformedStops.toTypedArray())
 
         println("Copying routes")
-        gtfs.routes.insert(*ocSource.routes.getAll().toTypedArray())
+        val transformedRoutes = Transformer(RoutesTransformer(ocSource), ocSource.routes.getAll()).transform()
+        gtfs.routes.insert(*transformedRoutes.toTypedArray())
 
         println("Copying agency")
         gtfs.agencies.insert(*ocSource.agencies.getAll().toTypedArray())
