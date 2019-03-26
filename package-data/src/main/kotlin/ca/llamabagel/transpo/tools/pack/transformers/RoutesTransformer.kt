@@ -4,7 +4,7 @@ import ca.llamabagel.transpo.dao.gtfs.GtfsSource
 import ca.llamabagel.transpo.models.gtfs.Route
 import ca.llamabagel.transpo.models.gtfs.RouteId
 
-class RoutesTransformer(source: GtfsSource) : DataTransformer<Route> {
+class RoutesTransformer(source: GtfsSource) : DataTransformer<Route>() {
 
     private val headsigns: Map<RouteId, Array<String?>>
 
@@ -36,7 +36,7 @@ class RoutesTransformer(source: GtfsSource) : DataTransformer<Route> {
 
     override fun mapItem(item: Route): Route {
         val sign = headsigns.getValue(item.id)
-        val copy = item.copy(shortName = "${sign[0] ?: ""} \\ ${sign[1] ?: ""}")
+        val copy = item.copy(longName = "${sign[0] ?: ""} \\ ${sign[1] ?: ""}")
 
         println("Mapped $item to $copy")
         return copy

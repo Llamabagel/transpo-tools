@@ -10,7 +10,6 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import ca.llamabagel.transpo.tools.pack.transformers.StopsTransformer
-import ca.llamabagel.transpo.tools.pack.transformers.Transformer
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -54,11 +53,11 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
 
         // Copy all gtfs values over to raw gtfs and transform the data
         println("Copying stops")
-        val transformedStops = Transformer(StopsTransformer, ocSource.stops.getAll()).transform()
+        val transformedStops = StopsTransformer.transform(ocSource.stops.getAll())
         gtfs.stops.insert(*transformedStops.toTypedArray())
 
         println("Copying routes")
-        val transformedRoutes = Transformer(RoutesTransformer(ocSource), ocSource.routes.getAll()).transform()
+        val transformedRoutes = RoutesTransformer(ocSource).transform(ocSource.routes.getAll())
         gtfs.routes.insert(*transformedRoutes.toTypedArray())
 
         println("Copying agency")

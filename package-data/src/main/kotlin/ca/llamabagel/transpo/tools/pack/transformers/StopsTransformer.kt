@@ -4,7 +4,7 @@ import ca.llamabagel.transpo.models.gtfs.Stop
 import ca.llamabagel.transpo.models.gtfs.StopId
 import ca.llamabagel.transpo.models.gtfs.asStopId
 
-object StopsTransformer : DataTransformer<Stop> {
+object StopsTransformer : DataTransformer<Stop>() {
 
     /**
      * Object containing [Stop] custom definitions for stations in the OC Transpo system.
