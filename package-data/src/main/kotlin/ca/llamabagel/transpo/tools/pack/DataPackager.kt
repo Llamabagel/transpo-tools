@@ -1,7 +1,12 @@
 package ca.llamabagel.transpo.tools.pack
 
 import ca.llamabagel.transpo.dao.gtfs.GtfsSource
-import ca.llamabagel.transpo.models.app.*
+import ca.llamabagel.transpo.models.app.Data
+import ca.llamabagel.transpo.models.app.DataPackage
+import ca.llamabagel.transpo.models.app.Version
+import ca.llamabagel.transpo.models.transit.Stop
+import ca.llamabagel.transpo.models.transit.Route
+import ca.llamabagel.transpo.models.transit.StopRoute
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
 import ca.llamabagel.transpo.tools.pack.transformers.AppRoutesTransformer
 import java.io.File
@@ -42,7 +47,7 @@ class DataPackager(private val source: GtfsSource, private val originalZip: File
                 val associatedTrip = trips.firstOrNull { it.tripId == stopTime.tripId } ?: return@mapNotNull null
                 return@mapNotNull stopTime to associatedTrip
             }
-            .map { (stopTime, trip) -> StopRoute(stopTime.stopId.value, trip.routeId.value, trip.directionId!!) }
+            .map { (stopTime, trip) -> StopRoute(stopTime.stopId.value, trip.routeId.value, trip.directionId!!, 0) }
             .toSet()
     }
 }
