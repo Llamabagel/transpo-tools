@@ -4,8 +4,8 @@ import ca.llamabagel.transpo.dao.gtfs.GtfsSource
 import ca.llamabagel.transpo.models.app.Data
 import ca.llamabagel.transpo.models.app.DataPackage
 import ca.llamabagel.transpo.models.app.Version
-import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.models.transit.Route
+import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.models.transit.StopRoute
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
 import ca.llamabagel.transpo.tools.pack.transformers.AppRoutesTransformer

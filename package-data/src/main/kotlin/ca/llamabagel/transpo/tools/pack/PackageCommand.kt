@@ -2,11 +2,9 @@ package ca.llamabagel.transpo.tools.pack
 
 import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
-import ca.llamabagel.transpo.models.transit.Stop
+import ca.llamabagel.transpo.models.app.*
 import ca.llamabagel.transpo.models.transit.Route
-import ca.llamabagel.transpo.models.app.DataPackage
-import ca.llamabagel.transpo.models.app.Data
-import ca.llamabagel.transpo.models.app.Version
+import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
 import ca.llamabagel.transpo.tools.pack.transformers.RoutesTransformer
 import com.github.ajalt.clikt.core.CliktCommand
@@ -19,10 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.zip.ZipFile
 
-class PackageCommand : CliktCommand(
-    name = "package",
-    help = "Package App data from an OC Transpo GTFS zip file. A version number will be automatically generated for the package."
-) {
+class PackageCommand : CliktCommand(name = "package", help = "Package App data from an OC Transpo GTFS zip file. A version number will be automatically generated for the package.") {
     private val gtfsZip by argument().file(exists = true, readable = true, folderOkay = false)
     private val revision by option(help = "The revision number to be included in the version number.")
 
@@ -88,27 +83,12 @@ class PackageCommand : CliktCommand(
     private fun packageData(): DataPackage {
         val gtfs = GtfsDirectory(File("rawGtfs").toPath())
 
-        val convertedStops = gtfs.stops.getAll().map {
-            Stop(
-                it.id.value,
-                it.code ?: "",
-                it.name,
-                it.latitude,
-                it.longitude,
-                it.locationType ?: 0,
-                it.parentStation?.value
-            )
-        }
+        val convertedStops = gtfs.stops.getAll().map { Stop(it.id.value, it.code ?: "", it.name, it.latitude, it.longitude, it.locationType ?: 0, it.parentStation?.value) }
         // TODO: Long names and Service Levels
         val convertedRoutes = gtfs.routes.getAll().map { Route(it.id.value, it.shortName, "", it.type, "", "") }
 
         val version = SimpleDateFormat("YYYYMMdd").format(Date())
-        return DataPackage(
-            Version(version),
-            SCHEMA_VERSION,
-            Date(),
-            Data(convertedStops, emptyList(), emptyList(), emptyList())
-        )
+        return DataPackage(Version(version), SCHEMA_VERSION, Date(), Data(convertedStops, emptyList(), emptyList(), emptyList()))
     }
 
     private fun cleanup() {
