@@ -141,7 +141,7 @@ alter table data_versions
 -- Create app metadata table
 create table metadata
 (
-    branch           text                    not null
+    platform           text                    not null
         constraint metadata_pk
             primary key,
     data_version     text                    not null,
@@ -150,12 +150,12 @@ create table metadata
     app_version_code integer                 not null
 );
 
-comment on column metadata.branch is 'Indicates which branch of the app this metadata is for (live, dev, beta)';
+comment on column metadata.branch is 'Indicates which platform of the app this metadata is for (android, web, ios, etc.)';
 
-comment on column metadata.data_version is 'The version string of the latest copy of the data for this branch';
+comment on column metadata.data_version is 'The version string of the latest copy of the data for this platform';
 
 comment on column metadata.schema_version is 'The schema version of the data specified in data_version';
 
 comment on column metadata.updated is 'The time this data was last updated';
 
-comment on column metadata.app_version_code is 'The latest published version code of this branch of the app';
+comment on column metadata.app_version_code is 'The latest published version code of the app on this platform';
