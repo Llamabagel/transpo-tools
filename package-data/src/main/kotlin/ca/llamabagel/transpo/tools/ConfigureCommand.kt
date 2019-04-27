@@ -1,4 +1,4 @@
-package ca.llamabagel.transpo.tools.configure
+package ca.llamabagel.transpo.tools
 
 import ca.llamabagel.transpo.tools.Configuration
 import com.github.ajalt.clikt.core.CliktCommand
