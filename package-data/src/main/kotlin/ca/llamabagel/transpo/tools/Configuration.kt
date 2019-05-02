@@ -20,6 +20,7 @@ object Configuration {
     val SQL_PORT: String
     val SQL_PASSWORD: String
     val SQL_DATABASE: String
+    val DATA_PACKAGE_DIRECTORY: String
 
     init {
         if (!Files.exists(Paths.get("config.properties"))) {
@@ -35,6 +36,7 @@ object Configuration {
         SQL_PORT = properties.getProperty("SQL_PORT") ?: throw IllegalStateException("SQL_PORT not set in config.properties")
         SQL_PASSWORD = properties.getProperty("SQL_PASSWORD") ?: throw IllegalStateException("SQL_PASSWORD not set in config.properties")
         SQL_DATABASE = properties.getProperty("SQL_DATABASE") ?: "transit"
+        DATA_PACKAGE_DIRECTORY = properties.getProperty("DATA_PACKAGE_DIRECTORY")?.removeSuffix("/") ?: throw IllegalStateException("DATA_PACKAGE_DIRECTORY not set in config.properties")
     }
 
     /**

@@ -24,7 +24,6 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
     override fun run() {
         // Unzips the given OC Transpo GTFS zip for processing.
         unzipGtfs()
-
         copyData()
 
         //ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))

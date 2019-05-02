@@ -24,3 +24,5 @@ Options:
  
 ### `upload <version>` 
 Uploads a specified data package version to the server. This will copy the generated .zip file created by the package command to the server specified in configuration file and copy all data to the SQL server.
+
+This command **must** be run on the target machine. The zip files are copied directly through the filesystem.
