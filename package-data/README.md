@@ -10,6 +10,9 @@ All future commands will use the configuration details stored in the `config.pro
 
 ## Commands
 
+### `info`
+Displays the configuration information that is being used by the program.
+
 ### `configure`
 The configure command will create the database schema for the transit database as specified in the configuration file.
 
@@ -26,3 +29,6 @@ Options:
 Uploads a specified data package version to the server. This will copy the generated .zip file created by the package command to the server specified in configuration file and copy all data to the SQL server.
 
 This command **must** be run on the target machine. The zip files are copied directly through the filesystem.
+
+Options:
+ * `<version>` The version number of the data package to upload. Will look for `<version>.zip` as the package.

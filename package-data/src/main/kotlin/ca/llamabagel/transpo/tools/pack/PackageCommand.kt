@@ -17,8 +17,19 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.zip.ZipFile
 
-class PackageCommand : CliktCommand(name = "package", help = "Package App data from an OC Transpo GTFS zip file. A version number will be automatically generated for the package.") {
-    private val gtfsZip by argument().file(exists = true, readable = true, folderOkay = false)
+class PackageCommand : CliktCommand(
+    name = "package",
+    help = "Package App data from an OC Transpo GTFS zip file.",
+    epilog = "Packages a GTFS file into a data package that can be uploaded to the server using the `upload` command. \n" +
+            "This command converts the GTFS data into both the set of data that will be used by individual devices, as well as a full GTFS dataset which is uploaded directly into the server.\n" +
+            "\n" +
+            "This command outputs a .zip file with the version name of the data package."
+) {
+    private val gtfsZip by argument(help = "The OC Transpo GTFS zip file.").file(
+        exists = true,
+        readable = true,
+        folderOkay = false
+    )
     private val revision by option(help = "The revision number to be included in the version number.")
 
     override fun run() {
@@ -82,12 +93,27 @@ class PackageCommand : CliktCommand(name = "package", help = "Package App data f
     private fun packageData(): DataPackage {
         val gtfs = GtfsDirectory(File("rawGtfs").toPath())
 
-        val convertedStops = gtfs.stops.getAll().map { Stop(it.id.value, it.code ?: "", it.name, it.latitude, it.longitude, it.locationType ?: 0, it.parentStation?.value) }
+        val convertedStops = gtfs.stops.getAll().map {
+            Stop(
+                it.id.value,
+                it.code ?: "",
+                it.name,
+                it.latitude,
+                it.longitude,
+                it.locationType ?: 0,
+                it.parentStation?.value
+            )
+        }
         // TODO: Long names and Service Levels
         val convertedRoutes = gtfs.routes.getAll().map { Route(it.id.value, it.shortName, "", it.type, "", "") }
 
         val version = SimpleDateFormat("YYYYMMdd").format(Date())
-        return DataPackage(Version(version), SCHEMA_VERSION, Date(), Data(convertedStops, emptyList(), emptyList(), emptyList()))
+        return DataPackage(
+            Version(version),
+            SCHEMA_VERSION,
+            Date(),
+            Data(convertedStops, emptyList(), emptyList(), emptyList())
+        )
     }
 
     private fun cleanup() {
