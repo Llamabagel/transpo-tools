@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'ca.llamabagel.transpo.tools'
-version 'git describe --tag --dirty'.execute().text.trim()
+version '1.0.0-alpha01'
 
 sourceCompatibility = 1.8
 
@@ -37,6 +37,11 @@ compileTestKotlin {
 application {
     mainClassName = 'ca.llamabagel.transpo.tools.Main'
 }
+
+applicationDistribution.from("$projectDir") {
+    include "example.config.properties"
+}
+
 
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."

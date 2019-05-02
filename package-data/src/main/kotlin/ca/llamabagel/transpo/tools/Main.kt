@@ -9,7 +9,7 @@ import ca.llamabagel.transpo.tools.pack.PackageCommand
 const val SCHEMA_VERSION = 1
 
 fun main(args: Array<String>) {
-    Program().subcommands(PackageCommand(), ConfigureCommand(), UploadCommand()).main(args)
+    Program().subcommands(PackageCommand(), ConfigureCommand(), UploadCommand(), InfoCommand()).main(args)
 }
 
 class Program : CliktCommand() {
