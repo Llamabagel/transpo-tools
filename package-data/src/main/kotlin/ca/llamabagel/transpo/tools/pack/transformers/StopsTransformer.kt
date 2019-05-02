@@ -24,7 +24,7 @@ object StopsTransformer : DataTransformer<Stop>() {
         val blair = stop.copy(id = StopId("BLR"), code = "3027", name = "Blair Station", latitude = 45.431213, longitude = -75.608409, locationType = 1)
         val canadianTireCentre = stop.copy(id = StopId("CTC"), code = "3059", name = "Canadian Tire Centre", latitude = 45.298810, longitude = -75.926695, locationType = 1)
         val carleton = stop.copy(id = StopId("CARL"), code = "3062", name = "Carleton Station", latitude = 45.385593, longitude = -75.695920, locationType = 1)
-        val carling = stop.copy(id = StopId("CAR"), code = "3061", name = "Carling Station", latitude = 45.397402, longitude = -75.709457, locationType =  1)
+        val carling = stop.copy(id = StopId("CAR"), code = "3061", name = "Carling Station", latitude = 45.397402, longitude = -75.709457, locationType = 1)
         val dominion = stop.copy(id = StopId("DOM"), code = "3013", name = "Dominion Station", latitude = 45.392224, longitude = -75.760621, locationType = 1)
         val eaglesonEast = stop.copy(id = StopId("EAG_E"), code = "3055", name = "Eagleson East", latitude = 45.318573, longitude = -75.884001, locationType = 1)
         val eaglesonWest = stop.copy(id = StopId("EAG_W"), code = "5855", name = "Eagleson West", latitude = 45.317963, longitude = -75.884743, locationType = 1)

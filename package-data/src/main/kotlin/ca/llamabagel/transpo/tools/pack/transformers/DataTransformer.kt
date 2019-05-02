@@ -27,7 +27,7 @@ abstract class DataTransformer<T : Any> {
      * @return [items] after all transformations have been performed
      */
     fun transform(items: List<T>): List<T> {
-        val mapped = items.mapNotNull {item ->
+        val mapped = items.mapNotNull { item ->
             when {
                 removeItem(item) -> null
                 else -> mapItem(item)

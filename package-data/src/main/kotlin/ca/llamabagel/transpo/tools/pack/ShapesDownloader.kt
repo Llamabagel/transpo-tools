@@ -7,7 +7,7 @@ import ca.llamabagel.transpo.models.gtfs.Trip
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.*
+import java.util.Date
 import kotlin.system.measureTimeMillis
 
 class ShapesDownloader(private val gtfs: GtfsSource) {
@@ -17,7 +17,7 @@ class ShapesDownloader(private val gtfs: GtfsSource) {
     private val stopTimes = gtfs.stopTimes.getAll()
 
     init {
-        val routes = gtfs.routes.getAll();
+        val routes = gtfs.routes.getAll()
         routes.forEach {
             uniqueTrips[it.id] = Array(2) { mutableListOf<UniqueTrip>() }
         }
@@ -36,7 +36,7 @@ class ShapesDownloader(private val gtfs: GtfsSource) {
             trips.forEach { trip ->
                 var hasMatch = false
                 // Goes through each unique trip on this route/direction to check if there are any that match the current trip
-                uniqueTrips[route.id]!![directionId].forEach unique@ {
+                uniqueTrips[route.id]!![directionId].forEach unique@{
                     if (trip matches it.unique) {
                         it.similar.add(trip)
                         hasMatch = true
@@ -56,7 +56,7 @@ class ShapesDownloader(private val gtfs: GtfsSource) {
 
         val routes = gtfs.routes.getAll()
 
-        routes.map {route ->
+        routes.map { route ->
             GlobalScope.launch {
                 println("START Route ${route.shortName}")
                 findUniqueTripsForRouteAndDirection(route, 0)
@@ -68,10 +68,7 @@ class ShapesDownloader(private val gtfs: GtfsSource) {
         }
     }
 
-
-    private suspend fun getRouteMapData(routeNumber: String, directionId: Int) {
-
-    }
+    private suspend fun getRouteMapData(routeNumber: String, directionId: Int) {}
 
     private infix fun Trip.matches(other: Trip): Boolean {
         val thisTimes = stopTimes.filter { it.tripId == this.tripId }
@@ -85,7 +82,6 @@ class ShapesDownloader(private val gtfs: GtfsSource) {
 
         return true
     }
-
 }
 
 data class UniqueTrip(val route: Route, val unique: Trip, val similar: MutableList<Trip>, val date: Date)

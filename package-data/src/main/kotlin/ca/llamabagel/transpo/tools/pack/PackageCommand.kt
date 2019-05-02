@@ -2,7 +2,9 @@ package ca.llamabagel.transpo.tools.pack
 
 import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
-import ca.llamabagel.transpo.models.app.*
+import ca.llamabagel.transpo.models.app.Data
+import ca.llamabagel.transpo.models.app.DataPackage
+import ca.llamabagel.transpo.models.app.Version
 import ca.llamabagel.transpo.models.transit.Route
 import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
@@ -14,7 +16,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import ca.llamabagel.transpo.tools.pack.transformers.StopsTransformer
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 import java.util.zip.ZipFile
 
 class PackageCommand : CliktCommand(
@@ -37,7 +39,7 @@ class PackageCommand : CliktCommand(
         unzipGtfs()
         copyData()
 
-        //ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
+        // ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
 
         cleanup()
     }
@@ -122,5 +124,4 @@ class PackageCommand : CliktCommand(
 
         File("rawGtfs").deleteRecursively()
     }
-
 }

@@ -8,7 +8,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.sql.Connection
 import java.sql.DriverManager
-import java.util.*
+import java.util.Properties
 
 /**
  * Object representation of the config.properties file.
@@ -31,12 +31,17 @@ object Configuration {
             load(FileInputStream("config.properties"))
         }
 
-        SQL_USER = properties.getProperty("SQL_USER") ?: throw IllegalStateException("SQL_USER not set in config.properties")
-        SQL_HOST = properties.getProperty("SQL_HOST") ?: throw IllegalStateException("SQL_HOST not set in config.properties")
-        SQL_PORT = properties.getProperty("SQL_PORT") ?: throw IllegalStateException("SQL_PORT not set in config.properties")
-        SQL_PASSWORD = properties.getProperty("SQL_PASSWORD") ?: throw IllegalStateException("SQL_PASSWORD not set in config.properties")
+        SQL_USER =
+            properties.getProperty("SQL_USER") ?: throw IllegalStateException("SQL_USER not set in config.properties")
+        SQL_HOST =
+            properties.getProperty("SQL_HOST") ?: throw IllegalStateException("SQL_HOST not set in config.properties")
+        SQL_PORT =
+            properties.getProperty("SQL_PORT") ?: throw IllegalStateException("SQL_PORT not set in config.properties")
+        SQL_PASSWORD = properties.getProperty("SQL_PASSWORD")
+            ?: throw IllegalStateException("SQL_PASSWORD not set in config.properties")
         SQL_DATABASE = properties.getProperty("SQL_DATABASE") ?: "transit"
-        DATA_PACKAGE_DIRECTORY = properties.getProperty("DATA_PACKAGE_DIRECTORY")?.removeSuffix("/") ?: throw IllegalStateException("DATA_PACKAGE_DIRECTORY not set in config.properties")
+        DATA_PACKAGE_DIRECTORY = properties.getProperty("DATA_PACKAGE_DIRECTORY")?.removeSuffix("/")
+            ?: throw IllegalStateException("DATA_PACKAGE_DIRECTORY not set in config.properties")
     }
 
     /**
