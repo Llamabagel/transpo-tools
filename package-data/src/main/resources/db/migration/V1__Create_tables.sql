@@ -150,7 +150,7 @@ create table metadata
     app_version_code integer                 not null
 );
 
-comment on column metadata.branch is 'Indicates which platform of the app this metadata is for (android, web, ios, etc.)';
+comment on column metadata.platform is 'Indicates which platform of the app this metadata is for (android, web, ios, etc.)';
 
 comment on column metadata.data_version is 'The version string of the latest copy of the data for this platform';
 
