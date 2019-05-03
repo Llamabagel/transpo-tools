@@ -97,7 +97,7 @@ class UploadCommand : CliktCommand(
 
         // Insert metadata
         statement.execute("INSERT INTO data_versions (version, schema_version) VALUES ($version, $SCHEMA_VERSION)")
-        statement.execute("INSERT INTO metadata VALUES ('android', $version, $SCHEMA_VERSION, current_timestamp(), 1) ON CONFLICT (platform) DO UPDATE SET version = $version, schema_version = $SCHEMA_VERSION")
+        statement.execute("INSERT INTO metadata VALUES ('android', '$version', $SCHEMA_VERSION, now(), 1) ON CONFLICT (platform) DO UPDATE SET data_version = $version, schema_version = $SCHEMA_VERSION")
 
         // Clean up temporary files
         temporaryDirectory.deleteRecursively()

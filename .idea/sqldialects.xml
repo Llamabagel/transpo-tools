@@ -2,6 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/package-data/src/main/kotlin/ca/llamabagel/transpo/tools/ConfigureCommand.kt" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/package-data/src/main/kotlin/ca/llamabagel/transpo/tools/UploadCommand.kt" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/package-data/src/main/resources/db/migration/V1__Create_tables.sql" dialect="PostgreSQL" />
   </component>
 </project>
