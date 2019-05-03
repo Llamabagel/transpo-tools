@@ -9,12 +9,15 @@ import ca.llamabagel.transpo.models.transit.Route
 import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
 import ca.llamabagel.transpo.tools.pack.transformers.RoutesTransformer
+import ca.llamabagel.transpo.tools.pack.transformers.StopsTransformer
+import ca.llamabagel.transpo.tools.util.zipFiles
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
-import ca.llamabagel.transpo.tools.pack.transformers.StopsTransformer
+import com.google.gson.Gson
 import java.io.File
+import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.zip.ZipFile
@@ -40,6 +43,8 @@ class PackageCommand : CliktCommand(
         copyData()
 
         // ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
+
+        packageData()
 
         cleanup()
     }
@@ -92,7 +97,7 @@ class PackageCommand : CliktCommand(
         println("Done copying")
     }
 
-    private fun packageData(): DataPackage {
+    private fun packageData() {
         val gtfs = GtfsDirectory(File("rawGtfs").toPath())
 
         val convertedStops = gtfs.stops.getAll().map {
@@ -109,19 +114,47 @@ class PackageCommand : CliktCommand(
         // TODO: Long names and Service Levels
         val convertedRoutes = gtfs.routes.getAll().map { Route(it.id.value, it.shortName, "", it.type, "", "") }
 
-        val version = SimpleDateFormat("YYYYMMdd").format(Date())
-        return DataPackage(
+        // Create the data package object
+        val version = SimpleDateFormat("YYYYMMdd").format(Date()) + (revision ?: "")
+        val dataPackage = DataPackage(
             Version(version),
             SCHEMA_VERSION,
             Date(),
-            Data(convertedStops, emptyList(), emptyList(), emptyList())
+            Data(convertedStops, convertedRoutes, emptyList(), emptyList())
         )
+        // Write data package to a json file
+        val packageFile = FileWriter("$version.json")
+        packageFile.write(Gson().toJson(dataPackage))
+
+        // Zip raw GTFS files
+        zipFiles(
+            "RawGTFS.zip",
+            "rawGtfs/stops.txt" to "stops.txt",
+            "rawGtfs/routes.txt" to "routes.txt",
+            "rawGtfs/agency.txt" to "agency.txt",
+            "rawGtfs/calendar.txt" to "calendar.txt",
+            "rawGtfs/calendar_dates.txt" to "calendar_dates.txt",
+            "rawGtfs/stop_times.txt" to "stop_times.txt",
+            "rawGtfs/trips.txt" to "trips.txt",
+            "rawGtfs/shapes.txt" to "shapes.txt"
+        )
+
+        // Zip all files required for the package
+        zipFiles("$version.zip",
+            "RawGTFS.zip" to "RawGTFS.zip",
+            "$version.json" to "$version.json",
+            gtfsZip.absolutePath to "GTFS.zip")
+
+        // Delete the temporarily created RawGTFS zip file
+        File("RawGTFS.zip").delete()
+        File("$version.json").delete()
     }
 
+    /**
+     * Cleanup temporary files
+     */
     private fun cleanup() {
-        // Delete the unzipped gtfs data
         File("gtfs").deleteRecursively()
-
         File("rawGtfs").deleteRecursively()
     }
 }

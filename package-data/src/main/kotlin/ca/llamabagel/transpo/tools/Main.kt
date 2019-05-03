@@ -13,6 +13,5 @@ fun main(args: Array<String>) {
 }
 
 class Program : CliktCommand() {
-    override fun run() {
-    }
+    override fun run() {}
 }
