@@ -123,8 +123,9 @@ class PackageCommand : CliktCommand(
             Data(convertedStops, convertedRoutes, emptyList(), emptyList())
         )
         // Write data package to a json file
-        val packageFile = FileWriter("$version.json")
-        packageFile.write(Gson().toJson(dataPackage))
+        FileWriter("$version.json").use {
+            it.write(Gson().toJson(dataPackage))
+        }
 
         // Zip raw GTFS files
         zipFiles(

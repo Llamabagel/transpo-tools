@@ -51,7 +51,7 @@ object Configuration {
     @JvmStatic
     fun getConnection(): Connection? {
         return try {
-            DriverManager.getConnection("jdbc:postgresql//$SQL_HOST:$SQL_PORT/$SQL_DATABASE", SQL_USER, SQL_PASSWORD)
+            DriverManager.getConnection("jdbc:postgresql://$SQL_HOST:$SQL_PORT/$SQL_DATABASE", SQL_USER, SQL_PASSWORD)
         } catch (e: Exception) {
             println(e.message)
             null
