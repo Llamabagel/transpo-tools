@@ -1,5 +1,6 @@
 package ca.llamabagel.transpo.tools
 
+import ca.llamabagel.transpo.Configuration
 import ca.llamabagel.transpo.dao.impl.GtfsDatabase
 import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import com.github.ajalt.clikt.core.CliktCommand
