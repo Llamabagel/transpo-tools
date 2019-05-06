@@ -3,7 +3,6 @@ package ca.llamabagel.transpo.tools.pack
 import ca.llamabagel.transpo.dao.gtfs.GtfsSource
 import ca.llamabagel.transpo.models.app.Data
 import ca.llamabagel.transpo.models.app.DataPackage
-import ca.llamabagel.transpo.models.app.Version
 import ca.llamabagel.transpo.models.transit.Route
 import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.models.transit.StopRoute
@@ -19,9 +18,9 @@ class DataPackager(private val source: GtfsSource, private val originalZip: File
         val generationDate = Date()
         val dateString = SimpleDateFormat("YYYYMMdd").format(generationDate)
         val version = if (revision > 0) {
-            Version("$dateString-$revision")
+            "$dateString-$revision"
         } else {
-            Version(dateString)
+            dateString
         }
 
         // Convert GTFS data to App Data format

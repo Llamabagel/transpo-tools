@@ -4,7 +4,6 @@ import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
 import ca.llamabagel.transpo.models.app.Data
 import ca.llamabagel.transpo.models.app.DataPackage
-import ca.llamabagel.transpo.models.app.Version
 import ca.llamabagel.transpo.models.transit.Route
 import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.tools.SCHEMA_VERSION
@@ -16,6 +15,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.google.gson.Gson
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
@@ -117,14 +117,14 @@ class PackageCommand : CliktCommand(
         // Create the data package object
         val version = SimpleDateFormat("YYYYMMdd").format(Date()) + (revision ?: "")
         val dataPackage = DataPackage(
-            Version(version),
+            version,
             SCHEMA_VERSION,
             Date(),
             Data(convertedStops, convertedRoutes, emptyList(), emptyList())
         )
         // Write data package to a json file
         FileWriter("$version.json").use {
-            it.write(Gson().toJson(dataPackage))
+            it.write(Json.stringify(DataPackage.serializer(), dataPackage))
         }
 
         // Zip raw GTFS files

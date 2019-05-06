@@ -59,18 +59,18 @@ class UploadCommand : CliktCommand(
         val directoryPath = "${Configuration.DATA_PACKAGE_DIRECTORY}/$SCHEMA_VERSION/$version"
 
         // Unzip raw GTFS data
-        val temporaryDirectory = File("$directoryPath/rawGtfs").apply { mkdir() }
-        ZipFile(File("$directoryPath/rawGtfs.zip")).use { zip ->
+        val temporaryDirectory = File("$directoryPath/RawGTFS").apply { mkdir() }
+        ZipFile(File("$directoryPath/RawGTFS.zip")).use { zip ->
             zip.entries().asSequence().forEach { entry ->
                 zip.getInputStream(entry).use { input ->
-                    File("$directoryPath/rawGtfs/${entry.name}").outputStream().use { output ->
+                    File("$directoryPath/RawGTFS/${entry.name}").outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
             }
         }
 
-        val gtfsData = GtfsDirectory(Paths.get("$directoryPath/rawGtfs"))
+        val gtfsData = GtfsDirectory(Paths.get("$directoryPath/RawGTFS"))
 
         // Clear all data and insert all new data
         val statement = dbConnection.createStatement()

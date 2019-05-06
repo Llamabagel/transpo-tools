@@ -1,5 +1,6 @@
 package ca.llamabagel.transpo.tools
 
+import ca.llamabagel.transpo.Configuration
 import com.github.ajalt.clikt.core.CliktCommand
 
 class InfoCommand : CliktCommand(name = "info", help = "Displays info about the program (version, configuration)") {

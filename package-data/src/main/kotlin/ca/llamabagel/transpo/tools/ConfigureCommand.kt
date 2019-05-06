@@ -1,5 +1,6 @@
 package ca.llamabagel.transpo.tools
 
+import ca.llamabagel.transpo.Configuration
 import com.github.ajalt.clikt.core.CliktCommand
 import org.flywaydb.core.Flyway
 import kotlin.system.exitProcess
