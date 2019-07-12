@@ -13,7 +13,7 @@ create table stops
     stop_url            text,
     location_type       integer,
     parent_station      varchar(10),
-    time_zone            varchar(10),
+    time_zone           varchar(10),
     wheelchair_boarding integer
 );
 
@@ -43,16 +43,16 @@ create unique index routes_id_uindex
 -- Create agencies
 create table agencies
 (
-    id       text not null
+    id        text not null
         constraint agencies_pk
             primary key,
-    name     text not null,
-    url      text not null,
+    name      text not null,
+    url       text not null,
     time_zone text not null,
-    language text,
-    phone    text,
-    fare_url text,
-    email    text
+    language  text,
+    phone     text,
+    fare_url  text,
+    email     text
 );
 
 -- Create calendar_Dates
@@ -141,7 +141,7 @@ alter table data_versions
 -- Create app metadata table
 create table metadata
 (
-    platform           text                    not null
+    platform         text                    not null
         constraint metadata_pk
             primary key,
     data_version     text                    not null,
@@ -159,3 +159,34 @@ comment on column metadata.schema_version is 'The schema version of the data spe
 comment on column metadata.updated is 'The time this data was last updated';
 
 comment on column metadata.app_version_code is 'The latest published version code of the app on this platform';
+
+-- Create Live Updates table
+create table live_updates
+(
+    guid               text unique              not null,
+    language           text                     not null,
+    title              text                     not null,
+    date               timestamp with time zone not null,
+    category           text                     not null,
+    link               text                     not null,
+    description        text                     not null,
+    featured_image_url text    default null,
+    removal_date       timestamp with time zone,
+    active             boolean default true,
+    primary key (guid, language)
+);
+
+create table live_updates_routes
+(
+    guid         text not null references live_updates (guid),
+    route_number text not null,
+    unique (guid, route_number)
+);
+
+create table live_updates_stops
+(
+    guid           text not null references live_updates (guid),
+    stop_code      text not null,
+    alternate_stop text,
+    unique (guid, stop_code, alternate_stop)
+);
