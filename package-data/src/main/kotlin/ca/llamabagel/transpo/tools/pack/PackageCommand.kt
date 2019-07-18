@@ -193,6 +193,7 @@ class PackageCommand : CliktCommand(
             "--username", Configuration.SQL_USER,
             "--no-password",
             "--format=custom", "--clean",
+            "--no-acl",
             "--file", dumpFile.toString(),
             "--exclude-table=live_updates", "--exclude-table=live_updates_stops",
             "--exclude-table=live_updates_routes", "--exclude-table=data_versions",

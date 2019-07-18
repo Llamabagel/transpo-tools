@@ -78,6 +78,7 @@ class UploadCommand : CliktCommand(
             "--port", Configuration.SQL_PORT,
             "--username", Configuration.SQL_USER,
             "--no-password",
+            "--no-acl",
             "--format=custom", "--clean",
             "--table=agencies", "--table=calendar_dates",
             "--table=calendars", "--table=routes",

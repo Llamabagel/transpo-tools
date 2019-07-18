@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'ca.llamabagel.transpo.tools'
-version '1.0.0-alpha02'
+version '1.0.0-alpha03'
 
 sourceCompatibility = 1.8
 
