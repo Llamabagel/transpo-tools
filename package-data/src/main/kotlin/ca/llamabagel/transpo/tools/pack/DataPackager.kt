@@ -1,6 +1,7 @@
 package ca.llamabagel.transpo.tools.pack
 
 import ca.llamabagel.transpo.dao.gtfs.GtfsSource
+import ca.llamabagel.transpo.dao.listAll
 import ca.llamabagel.transpo.models.app.Data
 import ca.llamabagel.transpo.models.app.DataPackage
 import ca.llamabagel.transpo.models.transit.Route
@@ -24,7 +25,7 @@ class DataPackager(private val source: GtfsSource, private val originalZip: File
         }
 
         // Convert GTFS data to App Data format
-        val stops = source.stops.getAll().map {
+        val stops = source.stops.listAll().map {
             Stop(
                 it.id.value,
                 it.code!!,
@@ -36,7 +37,7 @@ class DataPackager(private val source: GtfsSource, private val originalZip: File
             )
         }
 
-        val rawRoutes = source.routes.getAll().map { Route(it.id.value, it.shortName, it.longName, it.type, "", "") }
+        val rawRoutes = source.routes.listAll().map { Route(it.id.value, it.shortName, it.longName, it.type, "", "") }
         val routes = AppRoutesTransformer.transform(rawRoutes)
 
         val stopRoutes = getStopRoutes().toList()

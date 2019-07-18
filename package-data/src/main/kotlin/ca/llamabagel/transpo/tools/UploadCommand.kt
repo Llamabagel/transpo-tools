@@ -1,14 +1,12 @@
 package ca.llamabagel.transpo.tools
 
-import ca.llamabagel.transpo.Configuration
-import ca.llamabagel.transpo.dao.impl.GtfsDatabase
-import ca.llamabagel.transpo.dao.impl.GtfsDirectory
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import java.io.BufferedReader
 import java.io.File
-import java.lang.IllegalStateException
-import java.nio.file.Paths
+import java.io.InputStreamReader
 import java.sql.Connection
+import java.util.Properties
 import java.util.zip.ZipFile
 
 class UploadCommand : CliktCommand(
@@ -24,7 +22,7 @@ class UploadCommand : CliktCommand(
     )
 
     private val dbConnection: Connection by lazy { Configuration.getConnection() ?: throw IllegalStateException() }
-    private val gtfsDatabase: GtfsDatabase by lazy { GtfsDatabase(dbConnection) }
+    private val directoryPath by lazy { "${Configuration.DATA_PACKAGE_DIRECTORY}/$SCHEMA_VERSION/$version" }
 
     override fun run() {
         val file = File("$version.zip")
@@ -34,12 +32,19 @@ class UploadCommand : CliktCommand(
             return
         }
 
+        println("Unzipping package")
         unzipPackage(file)
-        uploadGtfsData()
+
+        println("Restoring database")
+        uploadData()
+        println("Finished restoring database")
+
+        writeMetadata()
+
+        println("Updated data to version $version")
     }
 
     private fun unzipPackage(zipFile: File) {
-        val directoryPath = "${Configuration.DATA_PACKAGE_DIRECTORY}/$SCHEMA_VERSION/$version"
         // Create the destination directory for the package files
         File(directoryPath).mkdir()
 
@@ -55,52 +60,43 @@ class UploadCommand : CliktCommand(
         }
     }
 
-    private fun uploadGtfsData() {
-        val directoryPath = "${Configuration.DATA_PACKAGE_DIRECTORY}/$SCHEMA_VERSION/$version"
-
-        // Unzip raw GTFS data
-        val temporaryDirectory = File("$directoryPath/RawGTFS").apply { mkdir() }
-        ZipFile(File("$directoryPath/RawGTFS.zip")).use { zip ->
-            zip.entries().asSequence().forEach { entry ->
-                zip.getInputStream(entry).use { input ->
-                    File("$directoryPath/RawGTFS/${entry.name}").outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-        }
-
-        val gtfsData = GtfsDirectory(Paths.get("$directoryPath/RawGTFS"))
-
-        // Clear all data and insert all new data
+    private fun writeMetadata() {
+        println("Writing metadata...")
         val statement = dbConnection.createStatement()
-        statement.execute(
-            """
-            DELETE FROM stop_times;
-            DELETE FROM trips;
-            DELETE FROM shapes;
-            DELETE FROM calendar_dates;
-            DELETE FROM calendars;
-            DELETE FROM stops;
-            DELETE FROM routes;
-            DELETE FROM agencies;
-        """.trimIndent()
-        )
-
-        gtfsDatabase.agencies.insert(*gtfsData.agencies.getAll().toTypedArray())
-        gtfsDatabase.stops.insert(*gtfsData.stops.getAll().toTypedArray())
-        gtfsDatabase.routes.insert(*gtfsData.routes.getAll().toTypedArray())
-        gtfsDatabase.calendars.insert(*gtfsData.calendars.getAll().toTypedArray())
-        gtfsDatabase.calendarDates.insert(*gtfsData.calendarDates.getAll().toTypedArray())
-        gtfsData.shapes?.getAll()?.toTypedArray()?.let { gtfsDatabase.shapes?.insert(*it) }
-        gtfsDatabase.trips.insert(*gtfsData.trips.getAll().toTypedArray())
-        gtfsDatabase.stopTimes.insert(*gtfsData.stopTimes.getAll().toTypedArray())
 
         // Insert metadata
         statement.execute("INSERT INTO data_versions (version, schema_version) VALUES ($version, $SCHEMA_VERSION)")
         statement.execute("INSERT INTO metadata VALUES ('android', '$version', $SCHEMA_VERSION, now(), 1) ON CONFLICT (platform) DO UPDATE SET data_version = $version, schema_version = $SCHEMA_VERSION")
+        println("Done.")
+    }
 
-        // Clean up temporary files
-        temporaryDirectory.deleteRecursively()
+    private fun uploadData(): Int {
+        val properties = Properties().apply { load(File("config.properties").inputStream()) }
+        val processBuilder = ProcessBuilder(
+            properties["PG_RESTORE"] as String,
+            "--host", Configuration.SQL_HOST,
+            "--port", Configuration.SQL_PORT,
+            "--username", Configuration.SQL_USER,
+            "--no-password",
+            "--format=custom", "--clean",
+            "--table=agencies", "--table=calendar_dates",
+            "--table=calendars", "--table=routes",
+            "--table=shapes", "--table=stop_times",
+            "--table=stops", "--table=trips",
+            "--dbname=${Configuration.SQL_DATABASE}",
+            "--verbose",
+            "$directoryPath/$version.pg")
+
+        val env = processBuilder.environment()
+        env["PGPASSWORD"] = Configuration.SQL_PASSWORD
+
+        val process = processBuilder.start()
+        BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
+            reader.lineSequence().forEach(System.err::println)
+        }
+        process.waitFor()
+        println(process.exitValue())
+
+        return process.exitValue()
     }
 }

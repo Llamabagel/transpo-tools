@@ -71,8 +71,8 @@ class ShapesDownloader(private val gtfs: GtfsSource) {
     private suspend fun getRouteMapData(routeNumber: String, directionId: Int) {}
 
     private infix fun Trip.matches(other: Trip): Boolean {
-        val thisTimes = stopTimes.filter { it.tripId == this.tripId }
-        val otherTimes = stopTimes.filter { it.tripId == other.tripId }
+        val thisTimes = stopTimes.filter { it.tripId == this.tripId }.toList()
+        val otherTimes = stopTimes.filter { it.tripId == other.tripId }.toList()
 
         thisTimes.forEachIndexed { index, stopTime ->
             if (index < otherTimes.size && otherTimes[index].stopId != stopTime.stopId) {
