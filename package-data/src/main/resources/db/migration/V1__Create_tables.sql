@@ -170,9 +170,9 @@ create table live_updates
     category           text                     not null,
     link               text                     not null,
     description        text                     not null,
-    featured_image_url text    default null,
-    removal_date       timestamp with time zone,
-    active             boolean default true,
+    featured_image_url text                     default null,
+    removal_date       timestamp with time zone default null,
+    active             boolean                  default true,
     primary key (guid, language)
 );
 
