@@ -1,16 +1,9 @@
 package ca.llamabagel.transpo.tools.pack
 
-import ca.llamabagel.transpo.dao.impl.GtfsDatabase
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
-import ca.llamabagel.transpo.dao.listAll
-import ca.llamabagel.transpo.models.app.Data
 import ca.llamabagel.transpo.models.app.DataPackage
-import ca.llamabagel.transpo.models.transit.Route
-import ca.llamabagel.transpo.models.transit.Stop
 import ca.llamabagel.transpo.tools.Configuration
-import ca.llamabagel.transpo.tools.SCHEMA_VERSION
-import ca.llamabagel.transpo.tools.pack.transformers.RoutesTransformer
-import ca.llamabagel.transpo.tools.pack.transformers.StopsTransformer
+import ca.llamabagel.transpo.tools.octranspo.OCTranspoPackager
 import ca.llamabagel.transpo.tools.util.zipFiles
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.output.TermUi
@@ -25,8 +18,6 @@ import java.io.FileWriter
 import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
-import java.sql.Connection
-import java.sql.DriverManager
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Properties
@@ -46,8 +37,6 @@ class PackageCommand : CliktCommand(
         folderOkay = false
     )
     private val revision by option(help = "The revision number to be included in the version number.")
-
-    private val packagingConnection: Connection by lazy { DriverManager.getConnection("jdbc:postgresql://${Configuration.SQL_HOST}:${Configuration.SQL_PORT}/packaging", Configuration.SQL_USER, Configuration.SQL_PASSWORD) }
     private val tempDir = Files.createTempDirectory("package-data")
 
     override fun run() {
@@ -57,12 +46,32 @@ class PackageCommand : CliktCommand(
 
         // Unzips the given OC Transpo GTFS zip for processing.
         unzipGtfs()
-        copyData()
+        //copyData()
 
         // ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
 
-        packageData()
+        //packageData()
         val version = SimpleDateFormat("YYYYMMdd").format(Date()) + (revision ?: "")
+
+        val packager = OCTranspoPackager(OcTranspoGtfsDirectory(tempDir))
+        val dataPackage = packager.packageData(version)
+
+        // Write data package to a json file
+        val tempFile = Files.createTempFile("package-data", ".json")
+        FileWriter(tempFile.toFile()).use {
+            it.write(Json.stringify(DataPackage.serializer(), dataPackage))
+        }
+
+        // Dump our prepackaged database into a file
+        val dumpFile = pgDumpPackage()
+
+        // Zip all files required for the package
+        zipFiles(
+            "$version.zip",
+            tempFile.toString() to "$version.json",
+            dumpFile.toString() to "$version.pg",
+            gtfsZip.absolutePath to "GTFS.zip"
+        )
         println("Packaged data to $version.zip")
     }
 
@@ -88,95 +97,6 @@ class PackageCommand : CliktCommand(
                 }
             }
         }
-    }
-
-    private fun copyData() {
-        val ocSource = OcTranspoGtfsDirectory(tempDir)
-        val gtfs = GtfsDatabase(packagingConnection)
-
-        // Copy all gtfs values over to raw gtfs and transform the data
-        println("Copying stops")
-        val transformedStops = StopsTransformer.transform(ocSource.stops.listAll())
-        gtfs.stops.insert(*transformedStops.toTypedArray())
-
-        println("Copying routes")
-        val transformedRoutes = RoutesTransformer(ocSource).transform(ocSource.routes.listAll())
-        gtfs.routes.insert(*transformedRoutes.toTypedArray())
-
-        println("Copying agency")
-        gtfs.agencies.insert(*ocSource.agencies.listAll().toTypedArray())
-
-        println("Copying calendars")
-        gtfs.calendars.insert(*ocSource.calendars.listAll().toTypedArray())
-
-        println("Copying calendar dates")
-        gtfs.calendarDates.insert(*ocSource.calendarDates.listAll().toTypedArray())
-
-        println("Copying stop times")
-        ocSource.stopTimes
-            .getAll()
-            .chunked(10000)
-            .forEach {
-                gtfs.stopTimes.insert(*it.toTypedArray())
-            }
-
-        println("Copying trips")
-        ocSource.trips
-            .getAll()
-            .chunked(10000)
-            .forEach {
-                gtfs.trips.insert(*it.toTypedArray())
-            }
-
-        println("Done copying")
-    }
-
-    private fun packageData() {
-        val ocSource = OcTranspoGtfsDirectory(tempDir)
-
-        val convertedStops = ocSource.stops
-            .listAll()
-            .map {
-                Stop(
-                    it.id.value,
-                    it.code ?: "",
-                    it.name,
-                    it.latitude,
-                    it.longitude,
-                    it.locationType ?: 0,
-                    it.parentStation?.value
-                )
-            }
-
-        // TODO: Long names and Service Levels
-        val convertedRoutes = ocSource.routes
-            .listAll()
-            .map { Route(it.id.value, it.shortName, "", it.type, "", "") }
-
-        // Create the data package object
-        val version = SimpleDateFormat("YYYYMMdd").format(Date()) + (revision ?: "")
-        val dataPackage = DataPackage(
-            version,
-            SCHEMA_VERSION,
-            Date(),
-            Data(convertedStops, convertedRoutes, emptyList(), emptyList())
-        )
-        // Write data package to a json file
-        val tempFile = Files.createTempFile("package-data", ".json")
-        FileWriter(tempFile.toFile()).use {
-            it.write(Json.stringify(DataPackage.serializer(), dataPackage))
-        }
-
-        // Dump our prepackaged database into a file
-        val dumpFile = pgDumpPackage()
-
-        // Zip all files required for the package
-        zipFiles(
-            "$version.zip",
-            tempFile.toString() to "$version.json",
-            dumpFile.toString() to "$version.pg",
-            gtfsZip.absolutePath to "GTFS.zip"
-        )
     }
 
     /**

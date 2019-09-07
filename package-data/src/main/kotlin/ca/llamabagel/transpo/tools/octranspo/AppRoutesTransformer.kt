@@ -1,6 +1,7 @@
-package ca.llamabagel.transpo.tools.pack.transformers
+package ca.llamabagel.transpo.tools.octranspo
 
 import ca.llamabagel.transpo.models.transit.Route
+import ca.llamabagel.transpo.tools.DataTransformer
 
 object AppRoutesTransformer : DataTransformer<Route>() {
 
