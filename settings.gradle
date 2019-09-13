@@ -9,6 +9,5 @@ pluginManagement {
 }
 rootProject.name = 'transpo-tools'
 
-include 'package-data'
-include 'timetable'
+include 'package-data', 'timetable'
 
