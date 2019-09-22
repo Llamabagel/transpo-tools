@@ -1,4 +1,4 @@
-#`NCR.osm.pbf`
+# NCR.osm.pbf
 The `NCR.osm.pbf` file is the OpenStreetMap data for the National Capital Region. It is fed into [OSRM](http://project-osrm.org/) in order to generate `shapes.txt` files from GTFS data.
 
 ## Updating the data
