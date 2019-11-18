@@ -4,6 +4,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 /**
@@ -38,4 +39,19 @@ fun zipFiles(zipPath: String, vararg files: Pair<String, String>) {
         // Files.copy(fileToZip.toPath(), zipOutputStream)
     }
     zipOutputStream.close()
+}
+
+/**
+ * Unzip a file ([zipFile]) to a [destination]
+ */
+fun unzipFile(zipFile: File, destination: File) {
+    ZipFile(zipFile).use { zip ->
+        zip.entries().asSequence().forEach { entry ->
+            zip.getInputStream(entry).use { input ->
+                File(destination, entry.name).outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+    }
 }

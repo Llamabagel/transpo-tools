@@ -2,7 +2,6 @@ package ca.llamabagel.transpo.tools
 
 import ca.llamabagel.transpo.dao.gtfs.GtfsSource
 import ca.llamabagel.transpo.dao.impl.GtfsDatabase
-import ca.llamabagel.transpo.dao.listAll
 import ca.llamabagel.transpo.models.app.Data
 import ca.llamabagel.transpo.models.app.DataPackage
 import ca.llamabagel.transpo.models.gtfs.Calendar
@@ -12,8 +11,8 @@ import ca.llamabagel.transpo.models.gtfs.Shape
 import ca.llamabagel.transpo.models.gtfs.Stop
 import ca.llamabagel.transpo.models.gtfs.StopTime
 import ca.llamabagel.transpo.models.gtfs.Trip
+import ca.llamabagel.transpo.models.transit.RouteShape
 import ca.llamabagel.transpo.models.transit.StopRoute
-import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.DriverManager
 import java.util.Date
@@ -21,13 +20,14 @@ import java.util.Date
 typealias TransitRoute = ca.llamabagel.transpo.models.transit.Route
 typealias TransitStop = ca.llamabagel.transpo.models.transit.Stop
 
-abstract class AgencyPackager(private val gtfsIn: GtfsSource) {
+abstract class AgencyPackager(private val gtfsIn: GtfsSource, private val config: Config) {
 
     protected val packagingConnection: Connection by lazy {
+        val sql = config.sql
         DriverManager.getConnection(
-            "jdbc:postgresql://${Configuration.SQL_HOST}:${Configuration.SQL_PORT}/packaging",
-            Configuration.SQL_USER,
-            Configuration.SQL_PASSWORD
+            "jdbc:postgresql://${sql.host}:${sql.port}/${sql.database}",
+            sql.user,
+            sql.password
         )
     }
 
@@ -36,19 +36,21 @@ abstract class AgencyPackager(private val gtfsIn: GtfsSource) {
     private val transitStops = mutableListOf<TransitStop>()
     private val transitRoutes = mutableListOf<TransitRoute>()
     private val transitStopRoutes = mutableListOf<StopRoute>()
+    private val routeShapes = mutableListOf<RouteShape>()
 
     fun packageData(version: String): DataPackage {
         doPackage()
 
-        return DataPackage(version,
+        return DataPackage(
+            version,
             1,
             Date(),
-            Data(transitStops, transitRoutes, transitStopRoutes, emptyList())
+            Data(transitStops, transitRoutes, transitStopRoutes, routeShapes)
         )
     }
 
     abstract fun doPackage()
-    
+
     protected fun packageRoutes(routes: List<Route>) {
         packaging.routes.insert(*routes.toTypedArray())
     }
@@ -87,5 +89,9 @@ abstract class AgencyPackager(private val gtfsIn: GtfsSource) {
 
     protected fun packageTransitStopRoutes(stopRoutes: List<StopRoute>) {
         transitStopRoutes.addAll(stopRoutes)
+    }
+
+    protected fun packageTransitRouteShapes(shapes: List<RouteShape>) {
+        routeShapes.addAll(shapes)
     }
 }

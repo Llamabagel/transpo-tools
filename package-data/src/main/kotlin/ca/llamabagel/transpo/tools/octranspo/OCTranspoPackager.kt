@@ -3,20 +3,28 @@ package ca.llamabagel.transpo.tools.octranspo
 import ca.llamabagel.transpo.dao.gtfs.GtfsSource
 import ca.llamabagel.transpo.dao.listAll
 import ca.llamabagel.transpo.models.gtfs.RouteId
+import ca.llamabagel.transpo.models.gtfs.Shape
+import ca.llamabagel.transpo.models.gtfs.ShapeId
 import ca.llamabagel.transpo.models.gtfs.StopId
 import ca.llamabagel.transpo.models.gtfs.TripId
 import ca.llamabagel.transpo.models.gtfs.asTripId
+import ca.llamabagel.transpo.models.transit.RouteShape
 import ca.llamabagel.transpo.models.transit.StopRoute
 import ca.llamabagel.transpo.tools.AgencyPackager
+import ca.llamabagel.transpo.tools.Config
 import ca.llamabagel.transpo.tools.TransitRoute
 import ca.llamabagel.transpo.tools.TransitStop
-import com.github.dockerjava.core.DefaultDockerClientConfig
+import ca.llamabagel.transpo.tools.shapes.OSRMProxy
+import ca.llamabagel.transpo.tools.util.decode
+import ca.llamabagel.transpo.tools.util.pmap
+import kotlinx.coroutines.runBlocking
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.graph.DirectedAcyclicGraph
 import org.jgrapht.traverse.TopologicalOrderIterator
 import org.slf4j.LoggerFactory
+import java.util.concurrent.atomic.AtomicInteger
 
-class OCTranspoPackager(private val gtfsIn: GtfsSource) : AgencyPackager(gtfsIn) {
+class OCTranspoPackager(private val gtfsIn: GtfsSource, private val config: Config) : AgencyPackager(gtfsIn, config) {
     private val logger = LoggerFactory.getLogger(AgencyPackager::class.java)
     private val uniqueTrips: MutableMap<Pair<RouteId, Int>, Set<TripId>> = mutableMapOf()
 
@@ -72,8 +80,46 @@ class OCTranspoPackager(private val gtfsIn: GtfsSource) : AgencyPackager(gtfsIn)
         val stopRoutes = uniqueTrips.entries.flatMap { (key, value) ->
             generateStopRouteSequence(key.first, key.second, value)
         }
-
         packageTransitStopRoutes(stopRoutes)
+
+        val proxy = OSRMProxy(config)
+        logger.info("Calculating and Packaging Shapes")
+        val stopLists = uniqueTrips.entries.mapNotNull { (key, trips) ->
+            if (trips.isNotEmpty()) {
+                trips.first() to packaging.stopTimes.getByTripId(trips.first()).map { packaging.stops.getById(it.stopId)!! }.toList()
+            } else {
+                logger.warn("Could not find trips for route $key")
+                null
+            }
+        }.toMap()
+
+        val shapes = mutableListOf<Pair<TripId, String?>>()
+        runBlocking {
+            shapes.addAll(stopLists.entries.pmap { (key, value) -> key to proxy.getRouteShape(value) })
+        }
+
+        val atomic = AtomicInteger()
+        val shapeObjects = shapes.mapNotNull { (tripId, polyline) ->
+            if (polyline != null) {
+                val decoded = decode(polyline, 6)
+                val trip = packaging.trips.getByTripId(tripId)!!
+
+                val unique = atomic.getAndIncrement()
+
+                return@mapNotNull RouteShape(
+                    trip.routeId.value,
+                    "${trip.routeId.value}-$unique",
+                    polyline
+                ) to decoded.mapIndexed { index, (latitude, longitude) ->
+                    Shape(ShapeId("${trip.routeId.value}-$unique"), latitude, longitude, index, null)
+                }
+            }
+
+            return@mapNotNull null
+        }
+        packageShapes(shapeObjects.map { (_, shapes) -> shapes }.flatten())
+        packageTransitRouteShapes(shapeObjects.map { (shape, _) -> shape })
+
         logger.info("--- Done packaging Transit data ---\n")
     }
 
@@ -174,11 +220,5 @@ class OCTranspoPackager(private val gtfsIn: GtfsSource) : AgencyPackager(gtfsIn)
                 StopRoute(id.value, routeId.value, directionId, index)
             }
         }
-    }
-
-    private fun startOsrm() {
-        DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost("tcp://localhost:2375")
-
     }
 }

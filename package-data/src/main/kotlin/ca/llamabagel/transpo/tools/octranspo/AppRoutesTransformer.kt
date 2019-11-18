@@ -9,7 +9,7 @@ object AppRoutesTransformer : DataTransformer<Route>() {
 
     override fun mapItem(item: Route): Route {
         // TODO: Add correct color codes
-        return when (item.shortName.toInt()) {
+        return when (item.shortName.toIntOrNull()) {
             1 -> item.copy(serviceLevel = "confederation", color = "#FF0000")
             2 -> item.copy(serviceLevel = "trillium", color = "#00FF00")
             6, 7, in 10..12, 14, 16, 40, 44, 80, 85, 87, 88, 104, 111 -> item.copy(serviceLevel = "frequent", color = "#FFF000")

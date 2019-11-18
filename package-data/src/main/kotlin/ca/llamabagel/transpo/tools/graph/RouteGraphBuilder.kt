@@ -57,5 +57,4 @@ class RouteGraphBuilder(val routeId: RouteId, val directionId: Int, private val 
             source.stopTimes.getByTripId(trip.tripId).sortedBy { it.stopSequence }.map { it.stopId }.toList()
         }.toList()
     }
-
 }

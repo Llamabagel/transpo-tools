@@ -1,0 +1,15 @@
+version: "3.6"
+services:
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_PASSWORD: packaging
+    ports:
+      - 5432:5432
+  osrm:
+    image: osrm/osrm-backend:latest
+    volumes:
+      - ${data.dir}:/data
+    ports:
+      - 5000:5000
+    command: osrm-routed --algorithm mld /data/NCR.osrm

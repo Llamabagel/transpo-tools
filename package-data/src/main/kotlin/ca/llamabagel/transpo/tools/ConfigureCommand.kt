@@ -24,8 +24,8 @@ class ConfigureCommand :
     private fun getDbConnection(): Flyway? {
         return try {
             Flyway.configure().dataSource(
-                "jdbc:postgresql://${Configuration.SQL_HOST}:${Configuration.SQL_PORT}/transit",
-                Configuration.SQL_USER, Configuration.SQL_PASSWORD
+                "jdbc:postgresql://0.0.0.0:5432/transit",
+                "transpo", "packaging"
             )
                 .load()
         } catch (e: Exception) {

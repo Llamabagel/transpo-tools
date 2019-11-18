@@ -2,11 +2,11 @@ package ca.llamabagel.transpo.tools.pack
 
 import ca.llamabagel.transpo.dao.impl.OcTranspoGtfsDirectory
 import ca.llamabagel.transpo.models.app.DataPackage
-import ca.llamabagel.transpo.tools.Configuration
+import ca.llamabagel.transpo.tools.getConfig
 import ca.llamabagel.transpo.tools.octranspo.OCTranspoPackager
+import ca.llamabagel.transpo.tools.util.unzipFile
 import ca.llamabagel.transpo.tools.util.zipFiles
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.output.TermUi
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
@@ -20,7 +20,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Properties
 import java.util.zip.ZipFile
 
 class PackageCommand : CliktCommand(
@@ -39,21 +38,23 @@ class PackageCommand : CliktCommand(
     private val revision by option(help = "The revision number to be included in the version number.")
     private val tempDir = Files.createTempDirectory("package-data")
 
+    private val configFile by option(
+        "-c",
+        "--config",
+        help = "A config file that specify certain values that will be used by the tool."
+    )
+        .file(folderOkay = false)
+    private val config by lazy { getConfig(configFile) }
+
     override fun run() {
-        TermUi.confirm("This command will clean and use a database named \"packaging\" on your local postgres instance. Continue?", abort = true)
-
         configurePackagingDatabase()
-
         // Unzips the given OC Transpo GTFS zip for processing.
-        unzipGtfs()
-        //copyData()
+        unzipFile(gtfsZip, tempDir.toFile())
 
-        // ShapesDownloader(GtfsDirectory(File("rawGtfs").toPath()))
-
-        //packageData()
         val version = SimpleDateFormat("YYYYMMdd").format(Date()) + (revision ?: "")
 
-        val packager = OCTranspoPackager(OcTranspoGtfsDirectory(tempDir))
+        // Prepare data for packaging
+        val packager = OCTranspoPackager(OcTranspoGtfsDirectory(tempDir), config)
         val dataPackage = packager.packageData(version)
 
         // Write data package to a json file
@@ -76,9 +77,10 @@ class PackageCommand : CliktCommand(
     }
 
     private fun configurePackagingDatabase() {
+        val sql = config.sql
         val flyway = Flyway
             .configure()
-            .dataSource("jdbc:postgresql://${Configuration.SQL_HOST}:${Configuration.SQL_PORT}/packaging", Configuration.SQL_USER, Configuration.SQL_PASSWORD)
+            .dataSource("jdbc:postgresql://${sql.host}:${sql.port}/${sql.database}", sql.user, sql.password)
             .load()
 
         flyway.clean()
@@ -104,13 +106,13 @@ class PackageCommand : CliktCommand(
      * @return The dump file
      */
     private fun pgDumpPackage(): Path {
+        val sql = config.sql
         val dumpFile = Files.createTempFile(null, ".pg")
-        val properties = Properties().apply { load(File("config.properties").inputStream()) }
         val processBuilder = ProcessBuilder(
-            properties["PG_DUMP"] as String,
-            "--host", Configuration.SQL_HOST,
-            "--port", Configuration.SQL_PORT,
-            "--username", Configuration.SQL_USER,
+            config.sql.pgDumpLocation,
+            "--host", sql.host,
+            "--port", sql.port,
+            "--username", sql.user,
             "--no-password",
             "--format=custom", "--clean",
             "--no-acl",
@@ -118,14 +120,14 @@ class PackageCommand : CliktCommand(
             "--exclude-table=live_updates", "--exclude-table=live_updates_stops",
             "--exclude-table=live_updates_routes", "--exclude-table=data_versions",
             "--exclude-table=flyway_schema_history", "--exclude-table=metadata",
-            "--verbose", "packaging"
+            "--verbose", sql.database
         )
 
         val env = processBuilder.environment()
-        env["PGPASSWORD"] = Configuration.SQL_PASSWORD
+        env["PGPASSWORD"] = config.sql.password
 
         val process = processBuilder.start()
-        BufferedReader(InputStreamReader(process.errorStream)).use {reader ->
+        BufferedReader(InputStreamReader(process.errorStream)).use { reader ->
             reader.lineSequence().forEach(System.err::println)
         }
         process.waitFor()

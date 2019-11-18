@@ -1,0 +1,27 @@
+version: "3.6"
+services:
+  osrm:
+    command:
+      - osrm-routed
+      - --algorithm
+      - mld
+      - /data/NCR.osrm
+    image: osrm/osrm-backend:latest
+    ports:
+      - mode: ingress
+        target: 5000
+        published: 5000
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: packaging
+    image: postgres:12-alpine
+    ports:
+      - mode: ingress
+        target: 5432
+        published: 5432
+        protocol: tcp
