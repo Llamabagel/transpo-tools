@@ -19,7 +19,10 @@ fun getConfig(file: File? = null): Config {
         properties.getProperty("PG_RESTORE", "pg_restore")
     )
 
-    val transpoConfig = TranspoConfig(properties.getProperty("TRANSPO_SCHEMA_VERSION", "1").toIntOrNull() ?: 1)
+    val transpoConfig = TranspoConfig(
+        properties.getProperty("TRANSPO_SCHEMA_VERSION", "1").toIntOrNull() ?: 1,
+        properties.getProperty("DATA_PACKAGE_DIRECTORY", "/tmp")
+    )
 
     val osrmConfig =
         OsrmConfig(properties.getProperty("OSRM_HOST", "localhost"), properties.getProperty("OSRM_PORT", "5000"))
@@ -44,7 +47,8 @@ data class SqlConfig(
 )
 
 data class TranspoConfig(
-    val schemaVersion: Int
+    val schemaVersion: Int,
+    val dataDirectory: String
 )
 
 data class OsrmConfig(

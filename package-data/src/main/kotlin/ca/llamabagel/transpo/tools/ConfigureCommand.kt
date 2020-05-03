@@ -1,6 +1,8 @@
 package ca.llamabagel.transpo.tools
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.file
 import org.flywaydb.core.Flyway
 import kotlin.system.exitProcess
 
@@ -10,6 +12,15 @@ class ConfigureCommand :
         help = "Creates the database schema for the transit database",
         epilog = "Uses the data in the config.properties file to connect to the transit database and creates the schema required to store the transit data."
     ) {
+
+    private val configFile by option(
+        "-c",
+        "--config",
+        help = "A config file that specify certain values that will be used by the tool."
+    )
+        .file(folderOkay = false)
+    private val config by lazy { getConfig(configFile) }
+
     override fun run() {
         val flyway = getDbConnection()
         if (flyway == null) {
@@ -23,10 +34,10 @@ class ConfigureCommand :
 
     private fun getDbConnection(): Flyway? {
         return try {
-            Flyway.configure().dataSource(
-                "jdbc:postgresql://0.0.0.0:5432/transit",
-                "transpo", "packaging"
-            )
+            val sql = config.sql
+            Flyway
+                .configure()
+                .dataSource("jdbc:postgresql://${sql.host}:${sql.port}/${sql.database}", sql.user, sql.password)
                 .load()
         } catch (e: Exception) {
             println(e.message)

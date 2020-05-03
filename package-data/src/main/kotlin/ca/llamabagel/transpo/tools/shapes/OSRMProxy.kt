@@ -21,7 +21,8 @@ class OSRMProxy(private val config: Config) {
      */
     suspend fun getRouteShape(stops: List<Stop>): String? {
         val coordinates = stops.joinToString(separator = ";") { stop -> "${stop.longitude},${stop.latitude}" }
-        val result = osrmService.route(coordinates)
+        val approaches = stops.joinToString(separator = ";") { "curb" }
+        val result = osrmService.route(coordinates, approaches)
 
         logger.info(result.routes[0].geometry)
 

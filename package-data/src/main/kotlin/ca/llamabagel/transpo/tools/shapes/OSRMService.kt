@@ -9,6 +9,7 @@ interface OSRMService {
     @GET("route/v1/driving/{coordinates}")
     suspend fun route(
         @Path("coordinates") coordinates: String,
+        @Query("approaches") approaches: String,
         @Query("alternatives") alternatives: Boolean = false,
         @Query("steps") steps: Boolean = false,
         @Query("overview") overview: String = "full"

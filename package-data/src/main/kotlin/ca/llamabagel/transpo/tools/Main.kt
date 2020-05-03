@@ -10,7 +10,14 @@ import com.github.ajalt.clikt.core.subcommands
 const val SCHEMA_VERSION = 1
 
 fun main(args: Array<String>) = Program()
-    .subcommands(PackageCommand(), ConfigureCommand(), InfoCommand(), ShapesCommand())
+    .subcommands(
+        PackageCommand(),
+        ConfigureCommand(),
+        InfoCommand(),
+        UploadCommand(),
+        ShapesCommand(),
+        GeoJsonCommand()
+    )
     .main(args)
 
 class Program : CliktCommand() {
